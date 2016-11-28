@@ -1,0 +1,14 @@
+/**/**
+!.gitignore
+!.gitmodules
+!/**/*.h
+/**/ui_*.h
+!/**/*.hpp
+!/**/*.cpp
+!/**/*.cc
+!/**/*.ui
+!/**/*.pro
+!/**/*.pri
+!/images
+!/images/*.jpg
+!/images/*.png

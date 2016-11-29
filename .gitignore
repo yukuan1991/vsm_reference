@@ -1,6 +1,6 @@
 /**/**
 !.gitignore
-!.gitmodules
+!/3rd-party/fmt/*
 !/**/*.h
 /**/ui_*.h
 !/**/*.hpp
@@ -9,3 +9,6 @@
 !/**/*.ui
 !/**/*.pro
 !/**/*.pri
+
+!/qt-tools
+!/3rd-party/*

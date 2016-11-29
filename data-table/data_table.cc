@@ -19,6 +19,7 @@ data_table::data_table(QWidget* parent, const json& frame_info)
     verticalHeader ()->setVisible (false);
 }
 
+
 void data_table::reset_frame_info(const nlohmann::json &frame_info)
 {
     if (frame_info.is_null ())

@@ -9,10 +9,3 @@
 !/**/*.ui
 !/**/*.pro
 !/**/*.pri
-!/**/*.org
-!/login
-!/utility
-!/3rd-party
-!/qt-tools
-!/data-table
-!/update

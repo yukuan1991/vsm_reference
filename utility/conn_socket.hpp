@@ -266,7 +266,7 @@ public:
 
     conn_socket (conn_socket&& that) noexcept {*this = std::move (that);}
     conn_socket (const conn_socket&) = delete;
-    operator bool () noexcept { return socket_ != INVALID_SOCKET;}
+    explicit operator bool () noexcept { return socket_ != INVALID_SOCKET;}
     void operator= (const conn_socket&) = delete;
     void operator= (conn_socket&& that) noexcept { socket_ = that.socket_; that.socket_ = INVALID_SOCKET;}
     ~conn_socket () { clear (); }

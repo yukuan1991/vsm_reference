@@ -48,6 +48,22 @@ private:
     T not_null_data_;
 };
 
+
+template<typename DATA, typename BINOP>
+struct value_guard
+{
+    value_guard (DATA ref) :ref_ (ref)
+    {
+        if (!(BINOP () (ref_)))
+        {
+            throw std::logic_error ("cannot construct value_guard");
+        }
+    }
+
+private:
+    DATA ref_;
+};
+
 namespace std
 {
 template< class T >

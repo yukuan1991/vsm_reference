@@ -68,7 +68,7 @@ public:
     template<typename ... ARGS>
     auto fprintf (const char* fmt, ARGS&& ... args) { return ::fprintf (fp_, fmt, std::forward<decltype(args)> (args)...);}
 
-    operator bool () { return fp_ != nullptr;}
+    explicit operator bool () { return fp_ != nullptr;}
 
 private:
     file (FILE* fp) noexcept : fp_ (fp) {}

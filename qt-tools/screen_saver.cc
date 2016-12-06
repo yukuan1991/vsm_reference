@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <QMouseEvent>
 #include <QClipboard>
+#include "utility/raii.hpp"
 
 QPixmap screen_saver::grab(copy_to_clip opt)
 {
@@ -59,49 +60,49 @@ void screen_saver::showEvent(QShowEvent *event)
 
 void screen_saver::paintEvent(QPaintEvent *event)
 {
+    SCOPE_EXIT { QDialog::paintEvent (event); };
     QPainter p (this);
 
     p.drawPixmap (0, 0, full_screen_);
     p.fillRect(this->rect (), QColor(0, 0, 0, 200));
     QFont font;
 
-    if (pressed_pos_)
+    if (!pressed_pos_)
     {
-        auto& start_pos = *pressed_pos_;
-        auto end_pos = QCursor::pos ();
-
-        font.setPixelSize (font_size);
-        font.setBold (false);
-        p.setFont (font);
-
-        // 文字颜色
-        p.setPen (QColor (Qt::red));
-
-        QString show_str;
-
-        show_str.sprintf ("截图范围:起点(%d , %d), 终点(%d , %d), 矩形长宽 (%d , %d)",
-                          start_pos.x (), start_pos.y (),
-                          end_pos.x (), end_pos.y (),
-                          std::abs (end_pos.x () - start_pos.x ()), std::abs (end_pos.y () - start_pos.y ()));
-
-        QTextOption opt;
-        opt.setTextDirection (start_pos.x () < end_pos.x () ? Qt::LeftToRight : Qt::RightToLeft);
-        p.drawText (QRect (end_pos.x () > start_pos.x () ? start_pos.x () : (start_pos.x () - font_size * 50),
-                           end_pos.y () > start_pos.y () ? (start_pos.y () - font_size) : (start_pos.y ()),
-                           font_size * 50,
-                           font_size), show_str, opt);
-
-        QRect selected_rect (QPoint (std::min (start_pos.x (), end_pos.x ()), std::min (start_pos.y (), end_pos.y ())),
-                             QPoint (std::max (start_pos.x (), end_pos.x ()), std::max (start_pos.y (), end_pos.y ())));
-        p.drawPixmap (selected_rect, full_screen_, selected_rect);
-
-        //框线颜色
-        p.setPen (QColor (Qt::black));
-        p.drawRect (start_pos.x (), start_pos.y (), end_pos.x () - start_pos.x (), end_pos.y () - start_pos.y ());
-
+        return;
     }
 
-    QDialog::paintEvent (event);
+    auto& start_pos = *pressed_pos_;
+    auto end_pos = QCursor::pos ();
+
+    font.setPixelSize (font_size);
+    font.setBold (false);
+    p.setFont (font);
+
+    // 文字颜色
+    p.setPen (QColor (Qt::red));
+
+    QString show_str;
+
+    show_str.sprintf ("截图范围:起点(%d , %d), 终点(%d , %d), 矩形长宽 (%d , %d)",
+                      start_pos.x (), start_pos.y (),
+                      end_pos.x (), end_pos.y (),
+                      std::abs (end_pos.x () - start_pos.x ()), std::abs (end_pos.y () - start_pos.y ()));
+
+    QTextOption opt;
+    opt.setTextDirection (start_pos.x () < end_pos.x () ? Qt::LeftToRight : Qt::RightToLeft);
+    p.drawText (QRect (end_pos.x () > start_pos.x () ? start_pos.x () : (start_pos.x () - font_size * 50),
+                       end_pos.y () > start_pos.y () ? (start_pos.y () - font_size) : (start_pos.y ()),
+                       font_size * 50,
+                       font_size), show_str, opt);
+
+    QRect selected_rect (QPoint (std::min (start_pos.x (), end_pos.x ()), std::min (start_pos.y (), end_pos.y ())),
+                         QPoint (std::max (start_pos.x (), end_pos.x ()), std::max (start_pos.y (), end_pos.y ())));
+    p.drawPixmap (selected_rect, full_screen_, selected_rect);
+
+    //框线颜色
+    p.setPen (QColor (Qt::black));
+    p.drawRect (start_pos.x (), start_pos.y (), end_pos.x () - start_pos.x (), end_pos.y () - start_pos.y ());
 }
 
 void screen_saver::mousePressEvent(QMouseEvent *event)
@@ -130,7 +131,6 @@ void screen_saver::mouseReleaseEvent(QMouseEvent *event)
         screen_shot_ = full_screen_.copy (QRect (left_top, right_bottom));
 
         pressed_pos_ = {};
-
 
         if (left_top == right_bottom)
         {

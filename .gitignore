@@ -14,5 +14,7 @@
 !/3rd-party/**/
 !/update/
 !/update/**/
+!/utility
+!/utility/**/
 !/qt-tools/
 !/qt-tools/**/

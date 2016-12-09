@@ -91,6 +91,28 @@ operator + (__scope_guard_on_fail__, fun&& f)
 
 
 
+/// unique_ptr utility
+
+template<typename DATA, DATA null_val = DATA {}>
+struct ptr_simulator
+{
+    constexpr ptr_simulator (DATA data) noexcept : data_ (data)
+    {
+        static_assert (std::is_pod<DATA>::value, "ptr_simulator only supports POD data");
+    }
+    constexpr ptr_simulator (std::nullptr_t = nullptr) noexcept :ptr_simulator (null_val) {}
+    operator DATA () noexcept { return data_; }
+    explicit operator bool  () noexcept { return data_ != null_val; }
+    bool operator == (ptr_simulator that) noexcept { return data_ == that.data_; }
+    bool operator != (ptr_simulator that) noexcept { return data_ != that.data_; }
+    constexpr DATA data () noexcept { return data_; }
+private:
+    DATA data_;
+};
+
+template<typename simulator>
+using wrap_closer = std::unique_ptr<void, simulator>;
+
 /// 比 std 中更加严格的move 不会让常量move通过编译
 
 

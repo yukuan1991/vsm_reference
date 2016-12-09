@@ -4,18 +4,31 @@
 #include <stdint.h>
 #include <iostream>
 #include "utility/array_view.hpp"
+#include "utility/raii.hpp"
 #include <experimental/string_view>
 #include <winsock.h>
 #include <algorithm>
 
-class conn_socket final
+
+
+
+
+class conn_socket
 {
+    struct socket_closer
+    {
+        using pointer = ptr_simulator<SOCKET, INVALID_SOCKET>;
+        void operator () (pointer p) { ::closesocket(p); }
+    };
+    using unique_socket = wrap_closer<socket_closer>;
 public:
     using string_view = std::experimental::string_view;
     template<typename T>
     using basic_string_view = std::experimental::basic_string_view<T>;
+public:
 
     conn_socket () = default;
+
     static conn_socket make_socket (int af = AF_INET, int type = SOCK_STREAM, int proto = 0) noexcept
     {
         WSADATA wsadata;
@@ -23,25 +36,12 @@ public:
         {
             return ::socket (af, type, proto);
         }
-        return {};
+        else
+        {
+            return {};
+        }
     }
 
-    static int analysis_addr (const char *_addrstr, uint32_t *_addr) noexcept
-    {
-        *_addr = ::inet_addr (_addrstr);
-        if (*_addr != INADDR_NONE)
-        {
-            return 0;
-        }
-        struct hostent* hent;
-        if ((hent = gethostbyname (_addrstr)) != NULL )
-        {
-            *_addr = ((struct in_addr *)(hent->h_addr_list [0]))->s_addr;
-            return 0;
-        }
-
-        return -1;
-    }
 
     bool bind (const char* ip, uint16_t port) noexcept
     {
@@ -54,7 +54,7 @@ public:
         }
         addr_info.sin_addr.s_addr = addr32bit;
         addr_info.sin_port = ::htons (port);
-        return (::bind (socket_, (sockaddr*)&addr_info, sizeof (addr_info)) == 0);
+        return (::bind (socket_.get(), (sockaddr*)&addr_info, sizeof (addr_info)) == 0);
     }
 
     bool connect (const char* ip, uint16_t port) noexcept
@@ -70,14 +70,13 @@ public:
         addr_info.sin_addr.s_addr = addr32bit;
 
         addr_info.sin_port = ::htons (port);
-        return (::connect (socket_, (sockaddr*)&addr_info, sizeof (addr_info)) == 0);
+        return (::connect (socket_.get(), (sockaddr*)&addr_info, sizeof (addr_info)) == 0);
     }
 
     int read (array_view<char> arr) noexcept
     {
-        return ::recv (socket_, arr.data (), static_cast<int>(arr.length ()), 0);
+        return ::recv (socket_.get(), arr.data (), static_cast<int>(arr.length ()), 0);
     }
-
     int readn (array_view<char>::iterator begin, array_view<char>::iterator end, long timeout_sec = 0, long timeout_usec = 0) noexcept
     {
         return readn ({begin, static_cast<array_view<char>::size_type> (end - begin)}, timeout_sec, timeout_usec);
@@ -95,12 +94,12 @@ public:
             if (timeout_sec != 0 or timeout_usec != 0)
             {
                 FD_ZERO(&read_fdset);
-                FD_SET(socket_, &read_fdset);
+                FD_SET(socket_.get(), &read_fdset);
                 timeout.tv_sec = timeout_sec; timeout.tv_usec = timeout_usec;
 
                 do
                 {
-                    select_return = select(static_cast<int>(socket_ + 1), &read_fdset, nullptr, nullptr, &timeout);
+                    select_return = select(static_cast<int>(socket_.get() + 1), &read_fdset, nullptr, nullptr, &timeout);
                 } while (select_return == -1 and errno == EINTR);
 
                 if (select_return == 0)
@@ -147,7 +146,7 @@ public:
 
                 do
                 {
-                    select_return = select(static_cast<int>(socket_ + 1), &read_fdset, nullptr, nullptr, &timeout);
+                    select_return = select(static_cast<int>(socket_.get() + 1), &read_fdset, nullptr, nullptr, &timeout);
                 } while (select_return == -1 and errno == EINTR);
 
                 if (select_return == 0)
@@ -177,7 +176,6 @@ public:
         err_cb ();
         return static_cast<int>(arr.length () - current_view.length ());
     }
-
     template<typename INT, typename SFINAE = typename std::enable_if<std::is_integral<INT>::value , void>::type>
     uint32_t writen (const INT& data) noexcept
     {
@@ -211,12 +209,12 @@ public:
 
     int write (string_view view) noexcept
     {
-        return ::send (socket_, view.data (), static_cast<int>(view.length ()), 0);
+        return ::send (socket_.get (), view.data (), static_cast<int>(view.length ()), 0);
     }
 
     int write (string_view::iterator begin, string_view::iterator end) noexcept
     {
-        return ::send (socket_, begin, end - begin, 0);
+        return ::send (socket_.get(), begin, end - begin, 0);
     }
 
     int read_until (array_view<char> view, string_view until, long timeout_sec = 0, long timeout_usec = 0) noexcept
@@ -264,15 +262,26 @@ public:
         return -1;
     }
 
-    conn_socket (conn_socket&& that) noexcept {*this = std::move (that);}
-    conn_socket (const conn_socket&) = delete;
-    explicit operator bool () noexcept { return socket_ != INVALID_SOCKET;}
-    void operator= (const conn_socket&) = delete;
-    void operator= (conn_socket&& that) noexcept { socket_ = that.socket_; that.socket_ = INVALID_SOCKET;}
-    ~conn_socket () { clear (); }
-    void clear () noexcept { if (socket_ != INVALID_SOCKET) ::closesocket (socket_); socket_ = INVALID_SOCKET; }
+    explicit operator bool () noexcept { return socket_.operator bool(); }
 private:
+    conn_socket (SOCKET s) : socket_ (s) { }
 
+    static int analysis_addr (const char *_addrstr, uint32_t *_addr) noexcept
+    {
+        *_addr = ::inet_addr (_addrstr);
+        if (*_addr != INADDR_NONE)
+        {
+            return 0;
+        }
+        struct hostent* hent;
+        if ((hent = gethostbyname (_addrstr)) != NULL )
+        {
+            *_addr = ((struct in_addr *)(hent->h_addr_list [0]))->s_addr;
+            return 0;
+        }
+
+        return -1;
+    }
     int recv_peek (array_view<char>::iterator begin, array_view<char>::iterator end, long timeout_sec = 0, long timeout_usec = 0) noexcept
     {
         return recv_peek ({begin, static_cast<array_view<char>::size_type> (end - begin)}, timeout_sec, timeout_usec);
@@ -286,21 +295,19 @@ private:
             timeval timeout;
 
             FD_ZERO(&read_fdset);
-            FD_SET(socket_, &read_fdset);
+            FD_SET(socket_.get(), &read_fdset);
             timeout.tv_sec = timeout_sec; timeout.tv_usec = timeout_usec;
 
-            if (select(static_cast<int>(socket_ + 1), &read_fdset, nullptr, nullptr, &timeout) < 1)
+            if (select(static_cast<int>(socket_.get() + 1), &read_fdset, nullptr, nullptr, &timeout) < 1)
             {
                 return -1;
             }
         }
 
-        return recv (socket_, view.data (), static_cast<int>(view.length ()), MSG_PEEK);
+        return recv (socket_.get(), view.data (), static_cast<int>(view.length ()), MSG_PEEK);
     }
-
-    constexpr conn_socket(SOCKET fd) noexcept : socket_ (fd) {}
 private:
-    SOCKET socket_ = INVALID_SOCKET;
+    unique_socket socket_;
 };
 
 struct tcp_helper

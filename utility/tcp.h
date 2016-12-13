@@ -10,9 +10,9 @@ conn_socket tcp_open (const char* ip, uint16_t port);
 bool write_string (conn_socket& sock, std::experimental::string_view view);
 std::string read_string (conn_socket& sock, uint32_t max = 1024 * 1024 * 16);
 
-std::string http_get (const char* host, const char* path, const std::map<std::string, std::string>& params = {}, uint16_t port = 80);
-nlohmann::json json_http_get (const char* host, const char* path, const std::map<std::string, std::string>& params = {}, uint16_t port = 80);
-nlohmann::json json_http_post (const char* host, const char* path, const nlohmann::json& data, uint16_t port = 80);
+std::string http_get (const char* host, not_null<const char*> path, const std::map<std::string, std::string>& params = {}, uint16_t port = 80);
+nlohmann::json json_http_get (const char* host, not_null<const char*> path, const std::map<std::string, std::string>& params = {}, uint16_t port = 80);
+nlohmann::json json_http_post (const char* host, not_null<const char*> path, const nlohmann::json& data, uint16_t port = 80);
 
 // template download functions with callbacks
 struct close_wininet_deleter { void operator () (void* p) { ::InternetCloseHandle (p); } };

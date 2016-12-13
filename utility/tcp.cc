@@ -66,7 +66,7 @@ std::string read_string(conn_socket &sock, uint32_t max)
     }
 }
 
-std::string http_get (const char* host, const char* path, const std::map<std::string, std::string>& params, uint16_t port) try
+std::string http_get (const char* host, not_null<const char*> path, const std::map<std::string, std::string>& params, uint16_t port) try
 {
     auto sock = conn_socket::make_socket ();
 
@@ -75,7 +75,15 @@ std::string http_get (const char* host, const char* path, const std::map<std::st
         return {};
     }
 
-    std::string str_get = "GET "s + path + "?";
+    std::string str_get = "GET ";
+    if (path[0] != '/')
+    {
+        str_get += "/";
+    }
+    str_get += path;
+    str_get += "?";
+
+    if (path)
     for (auto & it : params)
     {
         str_get += (it.first + "=" + it.second + "&");
@@ -94,7 +102,7 @@ catch (...)
     return {};
 }
 
-json json_http_get (const char *host, const char *path, const std::map<std::string, std::string> &params, uint16_t port) try
+json json_http_get (const char *host, not_null<const char*> path, const std::map<std::string, std::string> &params, uint16_t port) try
 {
     return json::parse (http_get (host, path, params, port));
 }
@@ -233,7 +241,7 @@ std::string read_chunked (conn_socket& sock)
 }
 
 
-json json_http_post(const char *host, const char *path, const json &data, uint16_t port) try
+json json_http_post(const char *host, not_null<const char*> path, const json &data, uint16_t port) try
 {
     auto sock = conn_socket::make_socket ();
 

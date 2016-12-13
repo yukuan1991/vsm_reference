@@ -24,7 +24,6 @@ bool update_app::run()
     auto base64_args = args[1].toStdString ();
 
     std::string json_args = ::base64_to_binary (base64_args);
-    ::write_buffer ("update.log", base64_args);
     if (json_args.empty ())
     {
         QMessageBox::information (nullptr, "更新", "启动参数错误 (不符合base64格式)");

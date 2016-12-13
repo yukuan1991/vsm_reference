@@ -109,7 +109,8 @@ void update_widget::next_file()
     auto current_index = index_;
     index_ ++;
 
-    ui->label_file->setText (fmt::format ("正在更新文件:{}, {}/{}", file_list_.at (current_index), current_index + 1, file_list_.size ()).data ());
+    auto current_file = ::sys_to_utf (file_list_.at (current_index));
+    ui->label_file->setText (fmt::format ("正在更新文件:{}, {}/{}", current_file, current_index + 1, file_list_.size ()).data ());
 
     go [this, wp = weak (alive_), server_path = "/" + prefix_ + "/" + file_list_.at(current_index), file = file_list_.at (current_index)] () mutable
     {

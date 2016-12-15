@@ -61,7 +61,7 @@ int http_dl (const char* url, const char* save_path, RES_CB res)
     {
         return -1;
     }
-    fp.fseek (0, seek_opt::head);
+    fp.fseek (file_pos::head);
 
 
     long unsigned int read_len;

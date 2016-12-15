@@ -43,14 +43,10 @@ catch (const std::exception&)
     return {};
 }
 
-string get_file_md5 (const char* path)
+string get_file_md5 (not_null<const char*> path)
 {
-    if (path == nullptr)
-    {
-        return {};
-    }
-
     auto fp = file::fopen (path, "rb");
+
     if (!fp)
     {
         return {};
@@ -59,12 +55,12 @@ string get_file_md5 (const char* path)
     std::array<unsigned char, 16> md5_buffer;
     MD5_CTX md5;
 
-    fp.fseek (0, seek_opt::tail);
+    fp.fseek (file_pos::tail);
     auto len = fp.ftell ();
 
     std::string file_buffer (static_cast<size_t> (len), '\0');
 
-    fp.fseek (0, seek_opt::head);
+    fp.fseek (file_pos::head);
     if (fp.fread (file_buffer) != file_buffer.length ())
     {
         return {};
@@ -123,6 +119,38 @@ string html_escape(string_view view)
 
     return result;
 }
+
+#include <QDebug>
+string url_encode(string_view raw)
+{
+    std::string result;
+    auto convert_to_hex = [] (auto&& ch) { ch += (ch < 10 ? '0' : '7'); };
+
+    result.reserve (raw.length () * 3);
+    typename std::string::size_type i = 0;
+
+    for (auto it : raw)
+    {
+        if (it >= 0)
+        {
+            result.push_back (it);
+        }
+        else
+        {
+            std::array<char, 3> arr;
+            arr.at (0) = '%';
+            arr.at (1) = static_cast<unsigned char> (it) / 16;
+            arr.at (2) = static_cast<unsigned char> (it) % 16;
+
+            convert_to_hex (arr.at (1));
+            convert_to_hex (arr.at (2));
+            result.append (arr.data (), arr.data () + arr.size ());
+        }
+    }
+
+    return result;
+}
+
 
 
 

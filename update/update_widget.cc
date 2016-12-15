@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QDebug>
 #include "cppformat.hpp"
+#include "utility/encryption.h"
 
 using namespace std;
 string update_widget::server_addr;
@@ -28,8 +29,13 @@ update_widget::~update_widget()
 
 void update_widget::init(nlohmann::json data)
 {
-    vector<string> file_list = data ["files"];
-    if (file_list.empty ())
+    for (auto & it : data ["files"])
+    {
+        std::string path = it ["path"], md5 = it ["md5"];
+        file_list_.emplace_back (path, md5);
+    }
+
+    if (file_list_.empty ())
     {
         QMessageBox::information (this, "更新", "更新文件为空");
         close ();
@@ -38,10 +44,9 @@ void update_widget::init(nlohmann::json data)
 
     boost::filesystem::create_directories ("tmp");
 
-    file_list_ = ::move (file_list);
     for (auto& it : file_list_)
     {
-        it = boost::locale::conv::between (it, "", "utf-8");
+        it.first = boost::locale::conv::between (it.first, "", "utf-8");
     }
 
     prefix_ = data["prefix"];
@@ -51,7 +56,7 @@ void update_widget::init(nlohmann::json data)
     next_file ();
 }
 
-void update_widget::download_process(update_widget* ptr, std::string server_path, std::string path, weak_ptr<bool> wp)
+void update_widget::download_process(update_widget* ptr, std::string server_path, std::string path, weak_ptr<bool> wp, std::string md5)
 {
     auto on_progress_callback = [wp, ptr] (unsigned long long current, unsigned long long total) mutable
     {
@@ -67,18 +72,21 @@ void update_widget::download_process(update_widget* ptr, std::string server_path
     };
 
     auto ret = http_dl (("http://" + update_widget::server_addr + server_path).data (), path.data (), on_progress_callback);
-    call_after [wp = ::move (wp), ptr, ret]
+
+    bool md5_match = ::get_file_md5 (path.data ()) == md5;
+
+    call_after [wp = ::move (wp), ptr, ret, md5_match]
     {
         if (wp.lock () == nullptr) return;
 
-        if (ret == 0)
+        if (ret == 0 and md5_match)
         {
             ptr->next_file ();
         }
         else
         {
-        ptr->failed ();
-    }
+            ptr->failed ();
+        }
 
     };
 }
@@ -109,16 +117,20 @@ void update_widget::next_file()
     auto current_index = index_;
     index_ ++;
 
-    auto current_file = ::sys_to_utf (file_list_.at (current_index));
+    auto current_file = ::sys_to_utf (file_list_.at (current_index).first);
     ui->label_file->setText (fmt::format ("正在更新文件:{}, {}/{}", current_file, current_index + 1, file_list_.size ()).data ());
 
-    go [this, wp = weak (alive_), server_path = "/" + prefix_ + "/" + file_list_.at(current_index), file = file_list_.at (current_index)] () mutable
+    go [this, md5 = file_list_.at (current_index).second, wp = weak (alive_),
+            server_path = "/" + prefix_ + "/" + ::sys_to_utf(file_list_.at(current_index).first),
+            file = file_list_.at (current_index).first] () mutable
     {
         auto tmp_path = "tmp/" + file;
         auto tmp = boost::filesystem::absolute (tmp_path);
         boost::filesystem::create_directories (tmp.parent_path ());
 
-        download_process (this, server_path, tmp_path, ::move (wp));
+        auto url = ::url_encode (server_path);
+        qDebug () << url.data ();
+        download_process (this, ::move (url), tmp_path, ::move (wp), ::move (md5));
     };
 }
 
@@ -129,11 +141,11 @@ void update_widget::finished()
     for (auto & it : file_list_)
     {
         /// 创建父目录
-        auto p = boost::filesystem::absolute (it);
+        auto p = boost::filesystem::absolute (it.first);
         auto parent = p.parent_path ();
         boost::filesystem::create_directories (parent);
         /// 移动文件
-        boost::filesystem::rename ("tmp/" + it, it);
+        boost::filesystem::rename ("tmp/" + it.first, it.first);
     }
 
     /// 删除临时文件夹

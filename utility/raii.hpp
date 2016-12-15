@@ -74,11 +74,7 @@ operator + (__scope_guard_on_fail__, fun&& f)
 #define __CONCAT_IMPL__(str1,str2) str1##str2
 #define CONCAT(str1,str2) __CONCAT_IMPL__(str1,str2)
 
-#ifdef __COUNTER__
-#define __ANONYMOUS_VAR__(str) CONCAT(str,__COUNTER__)
-#else
 #define __ANONYMOUS_VAR__(str) CONCAT(str,__LINE__)
-#endif
 
 /// 当退出作用域时调用 使用格式为 SCOPE_EXIT { fclose (fp);};
 #define SCOPE_EXIT \

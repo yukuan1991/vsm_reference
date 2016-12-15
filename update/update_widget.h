@@ -21,7 +21,7 @@ signals:
     void success ();
 
 private:
-    static void download_process (update_widget* , std::string, std::string, std::weak_ptr<bool>);
+    static void download_process (update_widget* , std::string, std::string, std::weak_ptr<bool>, std::string);
     void on_progress_triggered (unsigned long long current, unsigned long long total);
     void update_percentage (unsigned p);
     void next_file ();
@@ -31,7 +31,7 @@ private:
 private:
     Ui::update_widget *ui;
     std::shared_ptr<bool> alive_ = std::make_shared<bool> ();
-    std::vector<std::string> file_list_;
+    std::vector<std::pair<std::string, std::string>> file_list_;
     std::string prefix_;
     unsigned index_ = 0;
 private:

@@ -11,7 +11,7 @@
 #include <experimental/optional>
 #include "utility/raii.hpp"
 
-enum class seek_opt : int
+enum class file_pos : int
 {
     head = SEEK_SET,
     tail = SEEK_END,
@@ -32,7 +32,7 @@ public:
     template<typename ... ARGS>
     static file fopen (const char* file_name, const char* mode) { return ::fopen (file_name, mode);}
     /// 偏移至文件某处
-    int fseek (long offset, seek_opt origin)
+    int fseek (file_pos origin, long offset = 0)
     {
         return ::fseek (fp_.get (), offset, static_cast<int> (origin));
     }
@@ -111,7 +111,7 @@ inline std::experimental::optional<std::string> read_all (const char* path)
         return nullopt;
     }
 
-    if (fp.fseek (0, seek_opt::tail))
+    if (fp.fseek (file_pos::tail))
     {
         return nullopt;
     }
@@ -122,7 +122,7 @@ inline std::experimental::optional<std::string> read_all (const char* path)
         return nullopt;
     }
 
-    if (fp.fseek (0, seek_opt::head) != 0)
+    if (fp.fseek (file_pos::head) != 0)
     {
         return nullopt;
     }

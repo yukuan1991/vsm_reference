@@ -47,7 +47,7 @@ inline std::vector<std::pair<std::string, std::string>> check_for_update (const 
         std::string md5 = file ["md5"];
         int override = file ["override"];
 
-        auto real_md5 = ::get_file_md5 (path.data ());
+        auto real_md5 = ::get_file_md5 (::utf_to_sys (path.data ()).data());
         if (real_md5.empty () or (md5 != real_md5 and override != 0))
         {
             update_files.emplace_back (path, md5);

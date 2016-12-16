@@ -18,3 +18,4 @@
 !/utility/**/
 !/qt-tools/
 !/qt-tools/**/
+/**/moc*.cpp

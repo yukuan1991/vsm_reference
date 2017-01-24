@@ -3,7 +3,8 @@ HEADERS += \
     $$PWD/application.h \
     $$PWD/common.hpp \
     $$PWD/message_box.hpp \
-    $$PWD/screen_saver.h
+    $$PWD/screen_saver.h \
+    $$PWD/graphics.hpp
 
 SOURCES += \
     $$PWD/msg_event.cc \

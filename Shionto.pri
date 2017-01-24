@@ -8,6 +8,7 @@ QMAKE_CXXFLAGS += -Wextra
 QMAKE_CXXFLAGS += -Wno-deprecated-declarations
 QMAKE_CXXFLAGS += -Werror=write-strings
 QMAKE_CXXFLAGS += -Werror=return-type
+QMAKE_CXXFLAGS += -Werror=parentheses
 DEFINES += CURL_STATICLIB
 
 LIBS += -lboost_filesystem-mgw53-mt-1_61

@@ -11,11 +11,11 @@ QMAKE_CXXFLAGS += -Werror=return-type
 QMAKE_CXXFLAGS += -Werror=parentheses
 DEFINES += CURL_STATICLIB
 
-LIBS += -lboost_filesystem-mgw53-mt-1_61
-LIBS += -lboost_system-mgw53-mt-1_61
-LIBS += -lboost_regex-mgw53-mt-1_61
-LIBS += -lboost_thread-mgw53-mt-1_61
-LIBS += -lboost_locale-mgw53-mt-1_61
+LIBS += -lboost_filesystem
+LIBS += -lboost_system
+LIBS += -lboost_regex
+LIBS += -lboost_thread
+LIBS += -lboost_locale
 LIBS += -liconv
 LIBS += -lwininet
 #LIBS += -lcurl

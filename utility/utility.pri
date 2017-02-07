@@ -7,7 +7,10 @@ HEADERS += \
     $$PWD/interface.hpp \
     $$PWD/assert_exception.h \
     $$PWD/encryption.h \
-    $$PWD/using.hpp
+    $$PWD/using.hpp \
+    $$PWD/memory.hpp \
+    $$PWD/containers.hpp \
+    $$PWD/algorithm.hpp
 
 SOURCES += \
     $$PWD/tcp.cc \

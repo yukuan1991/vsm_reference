@@ -5,8 +5,10 @@
 #include <experimental/string_view>
 #include <boost/variant.hpp>
 #include <experimental/optional>
+#include <string>
 
 using std::vector;
+using std::string;
 using std::map;
 using std::array;
 using std::experimental::string_view;

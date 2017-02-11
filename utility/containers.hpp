@@ -10,6 +10,7 @@
 using std::vector;
 using std::string;
 using std::map;
+using std::pair;
 using std::array;
 using std::experimental::string_view;
 using std::experimental::basic_string_view;

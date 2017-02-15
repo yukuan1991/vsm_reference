@@ -12,8 +12,10 @@ HEADERS += \
 	$$PWD/cppformat.hpp \
     $$PWD/md5.h \
 	$$PWD/tinyxml2.h \
-	$$PWD/folly/detail/UncaughtExceptionCounter.h
+	$$PWD/folly/detail/UncaughtExceptionCounter.h \
+    $$PWD/des.h
 
 SOURCES += \
     $$PWD/md5.cc \
-    $$PWD/tinyxml2.cpp
+    $$PWD/tinyxml2.cpp \
+    $$PWD/des.cc

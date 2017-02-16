@@ -5,7 +5,8 @@ HEADERS += \
     $$PWD/message_box.hpp \
     $$PWD/screen_saver.h \
     $$PWD/graphics.hpp \
-    $$PWD/video_player.hpp
+    $$PWD/video_player.hpp \
+    $$PWD/video_widget.hpp
 
 SOURCES += \
     $$PWD/msg_event.cc \

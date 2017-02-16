@@ -78,7 +78,7 @@ operator + (__scope_guard_on_fail__, fun&& f)
 
 /// 当退出作用域时调用 使用格式为 SCOPE_EXIT { fclose (fp);};
 #define SCOPE_EXIT \
-    auto __ANONYMOUS_VAR__(SCOPE_EXIT_STATE) \
+    auto __ANONYMOUS_VAR__(HELPER_SCOPE_EXIT_STATE) \
     = __scope_guard_on_exit__ () + [&]()
 
 #define SCOPE_FAIL \

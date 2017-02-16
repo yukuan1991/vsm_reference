@@ -3,8 +3,8 @@
 
 #include <QtAVWidgets>
 #include <AVPlayer.h>
+#include <QtAV/QtAV.h>
 #include <memory>
-#include <ciso646>
 
 class video_player : public QtAV::GLWidgetRenderer2
 {

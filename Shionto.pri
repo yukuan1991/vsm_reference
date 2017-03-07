@@ -10,7 +10,6 @@ QMAKE_CXXFLAGS += -Werror=write-strings
 QMAKE_CXXFLAGS += -Werror=return-type
 QMAKE_CXXFLAGS += -Werror=parentheses
 QMAKE_CXXFLAGS += -Werror=maybe-uninitialized
-QMAKE_CXXFLAGS += -Wno-weak-vtables
 DEFINES += CURL_STATICLIB
 
 LIBS += -lboost_filesystem

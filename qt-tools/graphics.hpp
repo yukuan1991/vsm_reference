@@ -4,6 +4,7 @@
 #include <QPolygonF>
 #include <QLineF>
 #include <QMatrix>
+#include <QtMath>
 
 inline qreal distance (QPointF p1, QPointF p2)
 {

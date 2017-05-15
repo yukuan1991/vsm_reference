@@ -24,15 +24,18 @@ public:
     }
     operator T () { return not_null_data_; }
     template<typename OTHER>
-    not_null operator = (OTHER that) noexcept { not_null_data_ = that; }
+    not_null operator = (OTHER that) noexcept
+    {
+        if (that == nullptr)
+        {
+            NULL_REACTION () ();
+        }
+        not_null_data_ = that;
+    }
 
     not_null operator = (const not_null& that) noexcept
     {
         not_null_data_ = that.not_null_data_;
-        if (not_null_data_ == nullptr)
-        {
-            NULL_REACTION () ();
-        }
     }
 
     T operator -> ()

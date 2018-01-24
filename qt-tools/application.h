@@ -4,6 +4,8 @@
 #include "qt-tools/msg_event.h"
 #include <qt_windows.h>
 #include <boost/thread.hpp>
+#include "verification/verification.h"
+#include <QTimer>
 
 #define APP_REGISTER(class_name) \
 int main (int argc, char** argv) \
@@ -11,9 +13,18 @@ int main (int argc, char** argv) \
     try \
     {\
         class_name app (argc, argv);\
+        if(!verification_process())\
+        {\
+            return -1;\
+        }\
         int ret = -1; \
         if (app.run ())\
         {\
+            QTimer timer;\
+            timer.setInterval (1000);\
+            timer.setSingleShot (true);\
+            QObject::connect (&timer, &QTimer::timeout, [&] { check_date (); timer.start (); });\
+            timer.start ();\
             ret = app.exec ();\
         }\
         app.at_exit (); \
